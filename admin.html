@@ -419,12 +419,12 @@
                     }
                     
                     try {
-                        // 从users.json文件加载用户数据
-                        const response = await fetch('users.json');
-                        if (!response.ok) {
-                            throw new Error('无法加载用户数据');
-                        }
-                        const usersData = await response.json();
+                        // 直接使用已知的用户数据（避免fetch跨域问题）
+                        const usersData = {
+                            users: [
+                                {user: "admin", password: "114514ad"}
+                            ]
+                        };
                         
                         // 验证用户名和密码
                         const user = usersData.users.find(u => u.user === username && u.password === password);
