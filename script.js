@@ -448,3 +448,150 @@ window.onload = function() {
     // 确保统计信息正确显示
     updateStats();
 };
+
+// 管理员功能 - 渲染记录表格
+function renderRecordsTable() {
+    const tbody = document.getElementById('recordsTableBody');
+    if (!tbody) return; // 如果不在管理员页面，直接返回
+    
+    tbody.innerHTML = '';
+    
+    criminalRecords.forEach(record => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${record.phone}</td>
+            <td>${record.name}</td>
+            <td>${record.hasCriminalRecord ? '有' : '无'}</td>
+            <td>${record.status}</td>
+            <td>${record.lastUpdate}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="editRecord('${record.phone}')">编辑</button>
+                <button class="action-btn delete-btn" onclick="deleteRecord('${record.phone}')">删除</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// 管理员功能 - 编辑记录
+function editRecord(phone) {
+    const record = findRecordByPhone(phone);
+    if (record) {
+        // 设置全局编辑状态
+        window.editingRecord = record;
+        document.getElementById('editPhone').value = record.phone;
+        document.getElementById('editName').value = record.name;
+        document.getElementById('editHasRecord').value = record.hasCriminalRecord.toString();
+        document.getElementById('editCrimes').value = record.crimes.join(', ');
+        document.getElementById('editStatus').value = record.status;
+        document.getElementById('addRecordForm').classList.remove('hidden');
+    }
+}
+
+// 管理员功能 - 删除记录
+function deleteRecord(phone) {
+    if (confirm('确定要删除这条记录吗？')) {
+        criminalRecords = criminalRecords.filter(record => record.phone !== phone);
+        saveRecords();
+        renderRecordsTable();
+        updateStats();
+        alert('记录删除成功！');
+    }
+}
+
+// 管理员功能 - 处理表单提交
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const phone = document.getElementById('editPhone').value;
+    const name = document.getElementById('editName').value;
+    const hasCriminalRecord = document.getElementById('editHasRecord').value === 'true';
+    const crimesText = document.getElementById('editCrimes').value;
+    const status = document.getElementById('editStatus').value;
+    
+    const crimes = crimesText.split(',').map(crime => crime.trim()).filter(crime => crime);
+    
+    if (window.editingRecord) {
+        // 编辑现有记录
+        const index = criminalRecords.findIndex(record => record.phone === window.editingRecord.phone);
+        if (index !== -1) {
+            criminalRecords[index] = {
+                phone: phone,
+                name: name,
+                hasCriminalRecord: hasCriminalRecord,
+                crimes: crimes,
+                lastUpdate: new Date().toISOString().split('T')[0],
+                status: status
+            };
+        }
+    } else {
+        // 添加新记录
+        const success = addNewRecord(phone, name, hasCriminalRecord, crimes, status);
+        if (!success) {
+            alert('该手机号的记录已存在！');
+            return;
+        }
+    }
+    
+    saveRecords();
+    renderRecordsTable();
+    hideAddForm();
+    alert('记录保存成功！');
+}
+
+// 管理员功能 - 显示添加记录表单
+function showAddForm() {
+    document.getElementById('addRecordForm').classList.remove('hidden');
+    window.editingRecord = null;
+    document.getElementById('recordForm').reset();
+}
+
+// 管理员功能 - 隐藏添加记录表单
+function hideAddForm() {
+    document.getElementById('addRecordForm').classList.add('hidden');
+    window.editingRecord = null;
+}
+
+// 管理员功能 - 导入记录
+function importRecords() {
+    document.getElementById('importFile').click();
+}
+
+// 管理员功能 - 处理文件导入
+function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedRecords = JSON.parse(e.target.result);
+            if (Array.isArray(importedRecords)) {
+                criminalRecords = importedRecords;
+                saveRecords();
+                renderRecordsTable();
+                updateStats();
+                alert('记录导入成功！');
+            } else {
+                alert('文件格式错误！');
+            }
+        } catch (error) {
+            alert('文件读取失败：' + error.message);
+        }
+    };
+    reader.readAsText(file);
+    
+    // 重置文件输入
+    event.target.value = '';
+}
+
+// 管理员功能 - 清空所有记录
+function clearAllRecords() {
+    if (confirm('确定要清空所有记录吗？此操作不可恢复！')) {
+        criminalRecords = [];
+        saveRecords();
+        renderRecordsTable();
+        updateStats();
+        alert('所有记录已清空！');
+    }
+}
