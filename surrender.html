@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自首服务 - 治安管理系统演示版</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .surrender-hero {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            text-align: center;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .surrender-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .surrender-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .surrender-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .surrender-section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .surrender-section h2 {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 0.5rem;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .benefit-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .benefit-item h3 {
+            color: #e74c3c;
+            margin-bottom: 0.5rem;
+        }
+        
+        .process-steps {
+            counter-reset: step;
+        }
+        
+        .process-step {
+            position: relative;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .process-step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #3498db;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .contact-info h2 {
+            color: white;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .contact-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .contact-item {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+        
+        .quick-surrender {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .quick-surrender-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #f39c12;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .quick-surrender-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .legal-info {
+            background: #34495e;
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+        }
+        
+        .legal-info h2 {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <button onclick="window.location.href='index.html'" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                    ← 返回主页面
+                </button>
+                <h1 style="margin: 0; text-align: center; flex: 1;">治安管理系统演示版 - 自首服务</h1>
+            </div>
+            <p>技术演示项目 - 自首流程模拟平台</p>
+        </div>
+    </header>
+
+    <div class="surrender-hero">
+        <div class="container">
+            <h1>主动自首，依法从宽处理</h1>
+            <p>法律鼓励犯罪嫌疑人主动投案自首，依法可获得从宽处理</p>
+        </div>
+    </div>
+
+    <main class="surrender-content">
+        <!-- 自首优势 -->
+        <section class="surrender-section">
+            <h2>自首的法律优势</h2>
+            <p>根据《中华人民共和国刑法》第六十七条规定，犯罪以后自动投案，如实供述自己的罪行的，是自首。对于自首的犯罪分子，可以从轻或者减轻处罚。其中，犯罪较轻的，可以免除处罚。</p>
+            
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <h3>依法从宽</h3>
+                    <p>自首是法定从宽情节，依法可获得从轻、减轻或免除处罚</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>心理解脱</h3>
+                    <p>主动承担责任，摆脱长期的心理负担和精神压力</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>重新开始</h3>
+                    <p>依法接受处理后，可以重新开始正常的生活和工作</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>社会认可</h3>
+                    <p>主动自首体现了悔罪态度，更容易获得社会谅解</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 自首流程 -->
+        <section class="surrender-section">
+            <h2>自首流程指南</h2>
+            <div class="process-steps">
+                <div class="process-step">
+                    <h3>准备阶段</h3>
+                    <p>整理相关证据材料，准备如实供述犯罪事实</p>
+                </div>
+                <div class="process-step">
+                    <h3>联系公安机关</h3>
+                    <p>通过电话、网络或直接到公安机关表明自首意愿</p>
+                </div>
+                <div class="process-step">
+                    <h3>如实供述</h3>
+                    <p>向办案人员如实、全面供述自己的犯罪行为</p>
+                </div>
+                <div class="process-step">
+                    <h3>配合调查</h3>
+                    <p>积极配合公安机关的调查取证工作</p>
+                </div>
+                <div class="process-step">
+                    <h3>依法处理</h3>
+                    <p>依法接受处理，争取从宽处罚</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快速自首通道 -->
+        <section class="quick-surrender">
+            <h2>快速自首通道</h2>
+            <p>如果您已决定自首，可以通过以下方式快速办理：</p>
+            <a href="index.html" class="quick-surrender-btn">立即在线登记自首信息</a>
+            <p style="margin-top: 1rem; font-size: 0.9rem;">在线登记后，公安机关将主动与您联系</p>
+        </section>
+
+        <!-- 联系方式 -->
+        <section class="contact-info">
+            <h2>自首服务联系方式</h2>
+            <div class="contact-details">
+                <div class="contact-item">
+                    <h3>全国统一自首热线</h3>
+                    <p>110</p>
+                </div>
+                <div class="contact-item">
+                    <h3>网上自首平台</h3>
+                    <p>www.police.gov.cn/surrender</p>
+                </div>
+                <div class="contact-item">
+                    <h3>各地公安机关</h3>
+                    <p>可就近到任何公安机关投案</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 法律依据 -->
+        <section class="legal-info">
+            <h2>相关法律依据</h2>
+            <ul>
+                <li><strong>《中华人民共和国刑法》第六十七条</strong>：自首的定义和从宽处罚规定</li>
+                <li><strong>《中华人民共和国刑事诉讼法》</strong>：关于自首的认定和处理程序</li>
+                <li><strong>《最高人民法院关于处理自首和立功具体应用法律若干问题的解释》</strong></li>
+                <li><strong>《关于办理职务犯罪案件认定自首、立功等量刑情节若干问题的意见》</strong></li>
+            </ul>
+            
+            <h3 style="margin-top: 1.5rem;">自首认定标准</h3>
+            <p>同时具备以下两个条件的，应当认定为自首：</p>
+            <ol>
+                <li>自动投案：在未被司法机关发觉，或者虽被发觉但尚未受到讯问、未被采取强制措施时，主动、直接向公安机关、人民检察院或者人民法院投案</li>
+                <li>如实供述自己的罪行：如实交代自己的主要犯罪事实</li>
+            </ol>
+        </section>
+
+        <!-- 温馨提示 -->
+        <section class="surrender-section">
+            <h2>温馨提示</h2>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <h3>及时性</h3>
+                    <p>自首宜早不宜迟，越早自首越能体现悔罪态度</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>全面性</h3>
+                    <p>应如实供述全部犯罪事实，不得隐瞒</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>自愿性</h3>
+                    <p>自首必须出于本人自愿，不得强迫</p>
+                </div>
+                <div class="benefit-item">
+                    <h3>合法性</h3>
+                    <p>自首过程必须依法进行，保障合法权益</p>
+                </div>
+            </div>
+            
+            <p style="margin-top: 1.5rem; text-align: center; font-style: italic;">
+                "主动自首是悔罪的表现，也是重新开始的机会。法律鼓励自首，社会认可自首。"
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 治安管理系统演示版. 版权所有.</p>
+            <div class="disclaimer" style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 0.9rem; text-align: center;">
+                <p><strong>免责声明：</strong>本系统为技术演示项目，非官方系统，所有数据均为模拟数据，仅供学习和技术演示使用。</p>
+            </div>
+            <p>本系统提供的自首服务信息仅供参考，具体法律适用以司法机关认定为准。</p>
+            <p><a href="index.html" style="color: #3498db;">返回主查询页面</a></p>
+        </div>
+    </footer>
+</body>
+</html>

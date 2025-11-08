@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>治安管理系统演示版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>治安管理系统（演示版）</h1>
+            <p>技术演示项目 - 公民身份信息查询模拟平台</p>
+            <nav style="margin-top: 1rem;">
+                <a href="surrender.html" style="color: #e74c3c; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 2px solid #e74c3c; border-radius: 5px; margin: 0 10px;">自首服务</a>
+                <a href="admin.html" style="color: #3498db; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 2px solid #3498db; border-radius: 5px; margin: 0 10px;">管理员入口</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <div class="container">
+                <h2>犯罪记录查询系统</h2>
+                <p class="subtitle">请输入手机号查询相关犯罪记录信息</p>
+                
+                <div class="search-box">
+                    <input type="tel" id="phoneInput" placeholder="请输入11位手机号码" maxlength="11" pattern="[0-9]{11}">
+                    <button id="searchBtn" onclick="searchRecord()">查询</button>
+                </div>
+                
+                <div class="search-tips">
+                    <p>提示：请输入完整的11位手机号码进行查询</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="result-section" id="resultSection" style="display: none;">
+            <div class="container">
+                <h3>查询结果</h3>
+                <div id="resultContent" class="result-content">
+                    <!-- 查询结果将在这里显示 -->
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <div class="container">
+                <h3>系统统计</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalRecords">0</span>
+                        <span class="stat-label">总记录数</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="criminalRecords">0</span>
+                        <span class="stat-label">犯罪记录</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="cleanRecords">0</span>
+                        <span class="stat-label">无犯罪记录</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 治安管理系统演示版. 版权所有.</p>
+            <div class="disclaimer" style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 0.9rem; text-align: center;">
+                <p><strong>免责声明：</strong>本系统为技术演示项目，非官方系统，所有数据均为模拟数据，仅供学习和技术演示使用。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./script.js"></script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA双因素认证演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+        
+        .demo-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .qr-placeholder {
+            background: white;
+            border: 2px dashed #ccc;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 2FA双因素认证演示</h1>
+        
+        <div class="demo-section">
+            <h2>🌐 接口链接</h2>
+            <div class="info-box">
+                <strong>主系统链接：</strong>
+                <p><a href="http://localhost:5173/admin.html" target="_blank" style="color: #3498db; text-decoration: none;">http://localhost:5173/admin.html</a></p>
+                <p><strong>演示用户名：</strong> <code>demo</code></p>
+                <p><strong>使用说明：</strong></p>
+                <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>访问上方链接进入管理员系统</li>
+                    <li>使用用户名 <code>demo</code> 和任意密码登录</li>
+                    <li>在管理员界面点击"启用2FA"按钮</li>
+                    <li>扫描二维码或手动输入密钥配置验证器</li>
+                    <li>完成2FA设置后，下次登录需要输入验证码</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📋 系统概述</h2>
+            <p>这是一个基于TOTP（基于时间的一次性密码）算法的双因素认证系统演示。系统实现了类似GitHub的2FA功能。</p>
+            
+            <div class="info-box">
+                <strong>技术特点：</strong>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>使用TOTP算法（RFC 6238标准）</li>
+                    <li>30秒时间窗口</li>
+                    <li>6位数字验证码</li>
+                    <li>HMAC-SHA1哈希算法</li>
+                    <li>支持Google Authenticator等标准验证器</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🔑 生成2FA密钥</h2>
+            <p>点击下方按钮生成一个新的2FA密钥：</p>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="generateSecret()">生成新密钥</button>
+                <button class="btn-warning" onclick="copySecret()">复制密钥</button>
+            </div>
+            
+            <div id="secretResult" class="code-block" style="display: none;"></div>
+            
+            <div id="qrCode" class="qr-placeholder" style="display: none;">
+                <h3>📱 扫描二维码</h3>
+                <p>使用验证器应用扫描此二维码：</p>
+                <div id="qrImage"></div>
+                <p><small>或手动输入密钥：<span id="manualSecret"></span></small></p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🔢 生成验证码</h2>
+            <p>输入密钥生成当前时间的验证码：</p>
+            
+            <input type="text" id="inputSecret" placeholder="输入Base32格式的密钥" 
+                   style="width: 100%; padding: 0.75rem; margin: 1rem 0; border: 1px solid #ccc; border-radius: 5px;">
+            
+            <div class="button-group">
+                <button class="btn-success" onclick="generateTOTP()">生成验证码</button>
+                <button class="btn-warning" onclick="autoGenerate()">自动生成（每30秒）</button>
+            </div>
+            
+            <div id="totpResult" class="result" style="display: none;"></div>
+            
+            <div id="autoResult" class="result" style="display: none;">
+                <strong>当前验证码：</strong> <span id="currentCode"></span>
+                <br><small>剩余时间：<span id="timeLeft"></span>秒</small>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>✅ 验证验证码</h2>
+            <p>测试验证码是否正确：</p>
+            
+            <input type="text" id="testSecret" placeholder="输入密钥" 
+                   style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 5px;">
+            <input type="text" id="testCode" placeholder="输入6位验证码" maxlength="6"
+                   style="width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 5px;">
+            
+            <button class="btn-primary" onclick="verifyTOTP()">验证验证码</button>
+            
+            <div id="verifyResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🚀 集成演示</h2>
+            <p>测试完整的2FA登录流程：</p>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>访问管理员界面测试2FA登录</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>在管理界面中启用2FA保护</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>使用验证器应用进行登录验证</div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-success" onclick="window.open('admin.html', '_blank')">打开管理员界面</button>
+                <button class="btn-primary" onclick="window.location.href='index.html'">返回主页面</button>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 使用说明：</strong>
+            <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>生成密钥并保存到安全的地方</li>
+                <li>使用Google Authenticator、Microsoft Authenticator等应用扫描二维码</li>
+                <li>在登录时输入验证器应用显示的6位数字</li>
+                <li>验证码每30秒自动更新一次</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="./2fa.js"></script>
+    <script>
+        let autoInterval = null;
+        
+        function generateSecret() {
+            const twoFA = new TwoFactorAuth();
+            const secret = twoFA.getSecretKey();
+            
+            document.getElementById('secretResult').style.display = 'block';
+            document.getElementById('secretResult').innerHTML = `<strong>生成的密钥：</strong> ${secret}`;
+            
+            document.getElementById('qrCode').style.display = 'block';
+            document.getElementById('manualSecret').textContent = secret;
+            
+            // 简单的二维码文本表示（实际项目中应使用二维码库）
+            document.getElementById('qrImage').innerHTML = `
+                <div style="background: white; padding: 1rem; border: 1px solid #ccc; display: inline-block;">
+                    <div style="font-family: monospace; font-size: 0.8rem; line-height: 1;">
+                        📱 请使用验证器应用扫描<br>
+                        🔑 或手动输入密钥<br>
+                        <strong>${secret}</strong>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function copySecret() {
+            const secretElement = document.getElementById('secretResult');
+            if (secretElement.style.display === 'none') {
+                alert('请先生成密钥');
+                return;
+            }
+            
+            const secret = twoFactorAuth.getSecretKey();
+            navigator.clipboard.writeText(secret).then(() => {
+                alert('密钥已复制到剪贴板');
+            });
+        }
+        
+        function generateTOTP() {
+            const secret = document.getElementById('inputSecret').value.trim();
+            if (!secret) {
+                alert('请输入密钥');
+                return;
+            }
+            
+            try {
+                const code = twoFactorAuth.generateTOTP(secret);
+                document.getElementById('totpResult').style.display = 'block';
+                document.getElementById('totpResult').innerHTML = `
+                    <strong>当前验证码：</strong> ${code}
+                    <br><small>生成时间：${new Date().toLocaleString()}</small>
+                `;
+            } catch (error) {
+                document.getElementById('totpResult').style.display = 'block';
+                document.getElementById('totpResult').className = 'result error';
+                document.getElementById('totpResult').innerHTML = '错误：无效的密钥格式';
+            }
+        }
+        
+        function autoGenerate() {
+            const secret = document.getElementById('inputSecret').value.trim();
+            if (!secret) {
+                alert('请输入密钥');
+                return;
+            }
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+            }
+            
+            document.getElementById('autoResult').style.display = 'block';
+            document.getElementById('totpResult').style.display = 'none';
+            
+            function updateCode() {
+                try {
+                    const code = twoFactorAuth.generateTOTP(secret);
+                    const now = Math.floor(Date.now() / 1000);
+                    const timeLeft = 30 - (now % 30);
+                    
+                    document.getElementById('currentCode').textContent = code;
+                    document.getElementById('timeLeft').textContent = timeLeft;
+                    
+                    // 更新时间显示颜色
+                    const timeElement = document.getElementById('timeLeft');
+                    if (timeLeft <= 5) {
+                        timeElement.style.color = '#e74c3c';
+                        timeElement.style.fontWeight = 'bold';
+                    } else if (timeLeft <= 10) {
+                        timeElement.style.color = '#f39c12';
+                    } else {
+                        timeElement.style.color = '#27ae60';
+                    }
+                } catch (error) {
+                    document.getElementById('autoResult').className = 'result error';
+                    document.getElementById('autoResult').innerHTML = '错误：无效的密钥格式';
+                }
+            }
+            
+            updateCode();
+            autoInterval = setInterval(updateCode, 1000);
+        }
+        
+        function verifyTOTP() {
+            const secret = document.getElementById('testSecret').value.trim();
+            const code = document.getElementById('testCode').value.trim();
+            
+            if (!secret || !code) {
+                alert('请输入密钥和验证码');
+                return;
+            }
+            
+            if (code.length !== 6) {
+                alert('验证码必须是6位数字');
+                return;
+            }
+            
+            try {
+                const isValid = twoFactorAuth.verifyTOTP(secret, code);
+                document.getElementById('verifyResult').style.display = 'block';
+                
+                if (isValid) {
+                    document.getElementById('verifyResult').className = 'result';
+                    document.getElementById('verifyResult').innerHTML = '✅ 验证码正确！';
+                } else {
+                    document.getElementById('verifyResult').className = 'result error';
+                    document.getElementById('verifyResult').innerHTML = '❌ 验证码错误或已过期';
+                }
+            } catch (error) {
+                document.getElementById('verifyResult').style.display = 'block';
+                document.getElementById('verifyResult').className = 'result error';
+                document.getElementById('verifyResult').innerHTML = '错误：无效的密钥格式';
+            }
+        }
+        
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', () => {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+            }
+        });
+    </script>
+</body>
+</html>

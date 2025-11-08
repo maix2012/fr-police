@@ -1,0 +1,58 @@
+[
+  {
+    "phone": "13800138000",
+    "name": "张三",
+    "hasCriminalRecord": true,
+    "crimes": ["盗窃罪", "诈骗罪"],
+    "lastUpdate": "2024-01-15",
+    "status": "在逃"
+  },
+  {
+    "phone": "13900139000",
+    "name": "李四",
+    "hasCriminalRecord": false,
+    "crimes": [],
+    "lastUpdate": "2024-02-20",
+    "status": "清白"
+  },
+  {
+    "phone": "13600136000",
+    "name": "王五",
+    "hasCriminalRecord": true,
+    "crimes": ["故意伤害罪"],
+    "lastUpdate": "2023-12-10",
+    "status": "服刑中"
+  },
+  {
+    "phone": "13700137000",
+    "name": "赵六",
+    "hasCriminalRecord": true,
+    "crimes": ["贩毒罪", "非法持有枪支罪"],
+    "lastUpdate": "2024-03-05",
+    "status": "已判刑"
+  },
+  {
+    "phone": "13500135000",
+    "name": "钱七",
+    "hasCriminalRecord": false,
+    "crimes": [],
+    "lastUpdate": "2024-01-30",
+    "status": "清白"
+  },
+  {
+    "phone": "18800188000",
+    "name": "测试用户一",
+    "hasCriminalRecord": true,
+    "crimes": ["网络诈骗"],
+    "lastUpdate": "2024-03-20",
+    "status": "调查中"
+  },
+  {
+    "phone": "18900189000",
+    "name": "测试用户二",
+    "hasCriminalRecord": false,
+    "crimes": [],
+    "lastUpdate": "2024-03-20",
+    "status": "清白"
+  }
+]

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员界面 - 治安管理系统演示版</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="./auth.js"></script>
+    <script src="./2fa.js"></script>
+    <style>
+        .admin-section {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+        }
+        
+        .admin-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .admin-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .admin-btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .admin-btn.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .record-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .records-table th, .records-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .records-table th {
+            background: #34495e;
+            color: white;
+        }
+        
+        .records-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .action-btn {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* 登录界面样式 */
+        .login-section {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .login-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        .login-form input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .back-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录界面（默认显示） -->
+    <div id="loginSection" class="login-section" style="display: flex;">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>管理员登录</h1>
+                <p>治安管理系统演示版</p>
+            </div>
+            
+            <div id="message" class="message" style="display: none;"></div>
+            
+            <!-- 用户名密码登录表单 -->
+            <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">用户名：</label>
+                    <input type="text" id="username" required placeholder="请输入用户名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码：</label>
+                    <input type="password" id="password" required placeholder="请输入密码">
+                </div>
+                
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+            
+            <!-- 2FA验证表单 -->
+            <form id="2faSection" class="login-form" style="display: none;">
+                <div class="form-group">
+                    <label for="authCode">2FA验证码：</label>
+                    <input type="text" id="authCode" name="authCode" maxlength="6" placeholder="请输入6位验证码" required>
+                    <small style="color: #666; font-size: 0.8rem;">请在验证器应用中查看6位验证码</small>
+                </div>
+                <button type="submit" class="login-btn">验证</button>
+                <button type="button" class="back-btn" onclick="backToLogin()">返回登录</button>
+            </form>
+            
+            <div class="login-footer">
+                <button onclick="window.location.href='index.html'" class="back-btn">← 返回主页面</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理界面（默认隐藏） -->
+    <div id="adminSection" style="display: none;">
+        <header class="admin-header">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button onclick="window.location.href='index.html'" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                            ← 返回主页面
+                        </button>
+                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+                            退出登录
+                        </button>
+                    </div>
+                    <h1 style="margin: 0; text-align: center; flex: 1;">治安管理系统演示版 - 管理员界面</h1>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button onclick="toggle2FA()" id="2faToggleBtn" style="background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">启用2FA</button>
+                        <div style="color: #3498db; font-weight: bold;">欢迎，<span id="welcomeUser">管理员</span></div>
+                    </div>
+                </div>
+                <p>技术演示项目 - 数据管理模拟平台</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="admin-section">
+                <h2>数据管理控制台</h2>
+            
+            <div class="admin-controls">
+                <button class="admin-btn" onclick="showAddForm()">添加新记录</button>
+                <button class="admin-btn success" onclick="exportRecords()">导出数据</button>
+                <button class="admin-btn" onclick="importRecords()">导入数据</button>
+                <button class="admin-btn danger" onclick="clearAllRecords()">清空数据</button>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="handleFileImport(event)">
+            </div>
+
+            <div id="addRecordForm" class="record-form hidden">
+                <h3>添加/编辑犯罪记录</h3>
+                <form id="recordForm" onsubmit="handleFormSubmit(event)">
+                    <div class="form-group">
+                        <label for="editPhone">手机号：</label>
+                        <input type="tel" id="editPhone" required pattern="[0-9]{11}" placeholder="请输入11位手机号码">
+                    </div>
+                    <div class="form-group">
+                        <label for="editName">姓名：</label>
+                        <input type="text" id="editName" required placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHasRecord">是否有犯罪记录：</label>
+                        <select id="editHasRecord" required>
+                            <option value="false">无犯罪记录</option>
+                            <option value="true">有犯罪记录</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCrimes">犯罪类型（多个用逗号分隔）：</label>
+                        <textarea id="editCrimes" placeholder="例如：盗窃罪,诈骗罪"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">当前状态：</label>
+                        <input type="text" id="editStatus" required placeholder="例如：在逃、服刑中、清白等">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="admin-btn success">保存记录</button>
+                        <button type="button" class="admin-btn" onclick="hideAddForm()">取消</button>
+                    </div>
+                </form>
+            </div>
+
+            <h3>当前记录列表</h3>
+            <div class="table-container">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>手机号</th>
+                            <th>姓名</th>
+                            <th>犯罪记录</th>
+                            <th>状态</th>
+                            <th>最后更新</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTableBody">
+                        <!-- 记录将动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 治安管理系统演示版. 版权所有.</p>
+            <div class="disclaimer" style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 0.9rem; text-align: center;">
+                <p><strong>免责声明：</strong>本系统为技术演示项目，非官方系统，所有数据均为模拟数据，仅供学习和技术演示使用。</p>
+            </div>
+            <p><a href="index.html" style="color: white;">返回主页面</a></p>
+        </div>
+    </footer>
+    </div>
+
+    <script src="./src/script.js"></script>
+    <script>
+        let editingRecord = null;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecords();
+            renderRecordsTable();
+        });
+
+        // 显示添加记录表单
+        function showAddForm() {
+            document.getElementById('addRecordForm').classList.remove('hidden');
+            editingRecord = null;
+            document.getElementById('recordForm').reset();
+        }
+
+        // 隐藏添加记录表单
+        function hideAddForm() {
+            document.getElementById('addRecordForm').classList.add('hidden');
+            editingRecord = null;
+        }
+
+        // 处理表单提交
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const phone = document.getElementById('editPhone').value;
+            const name = document.getElementById('editName').value;
+            const hasCriminalRecord = document.getElementById('editHasRecord').value === 'true';
+            const crimesText = document.getElementById('editCrimes').value;
+            const status = document.getElementById('editStatus').value;
+            
+            const crimes = crimesText.split(',').map(crime => crime.trim()).filter(crime => crime);
+            
+            if (editingRecord) {
+                // 编辑现有记录
+                const index = criminalRecords.findIndex(record => record.phone === editingRecord.phone);
+                if (index !== -1) {
+                    criminalRecords[index] = {
+                        phone: phone,
+                        name: name,
+                        hasCriminalRecord: hasCriminalRecord,
+                        crimes: crimes,
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                        status: status
+                    };
+                }
+            } else {
+                // 添加新记录
+                const success = addNewRecord(phone, name, hasCriminalRecord, crimes, status);
+                if (!success) {
+                    alert('该手机号的记录已存在！');
+                    return;
+                }
+            }
+            
+            saveRecords();
+            renderRecordsTable();
+            hideAddForm();
+            alert('记录保存成功！');
+        }
+
+        // 渲染记录表格
+        function renderRecordsTable() {
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = '';
+            
+            criminalRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.phone}</td>
+                    <td>${record.name}</td>
+                    <td>${record.hasCriminalRecord ? '有' : '无'}</td>
+                    <td>${record.status}</td>
+                    <td>${record.lastUpdate}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editRecord('${record.phone}')">编辑</button>
+                        <button class="action-btn delete-btn" onclick="deleteRecord('${record.phone}')">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 编辑记录
+        function editRecord(phone) {
+            const record = findRecordByPhone(phone);
+            if (record) {
+                editingRecord = record;
+                document.getElementById('editPhone').value = record.phone;
+                document.getElementById('editName').value = record.name;
+                document.getElementById('editHasRecord').value = record.hasCriminalRecord.toString();
+                document.getElementById('editCrimes').value = record.crimes.join(', ');
+                document.getElementById('editStatus').value = record.status;
+                document.getElementById('addRecordForm').classList.remove('hidden');
+            }
+        }
+
+        // 删除记录
+        function deleteRecord(phone) {
+            if (confirm('确定要删除这条记录吗？')) {
+                criminalRecords = criminalRecords.filter(record => record.phone !== phone);
+                saveRecords();
+                renderRecordsTable();
+                updateStats();
+                alert('记录删除成功！');
+            }
+        }
+
+        // 导入记录
+        function importRecords() {
+            document.getElementById('importFile').click();
+        }
+
+        // 处理文件导入
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedRecords = JSON.parse(e.target.result);
+                    if (Array.isArray(importedRecords)) {
+                        criminalRecords = importedRecords;
+                        saveRecords();
+                        renderRecordsTable();
+                        updateStats();
+                        alert('记录导入成功！');
+                    } else {
+                        alert('文件格式错误！');
+                    }
+                } catch (error) {
+                    alert('文件读取失败：' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // 重置文件输入
+            event.target.value = '';
+        }
+
+        // 清空所有记录
+        function clearAllRecords() {
+            if (confirm('确定要清空所有记录吗？此操作不可恢复！')) {
+                criminalRecords = [];
+                saveRecords();
+                renderRecordsTable();
+                updateStats();
+                alert('所有记录已清空！');
+            }
+        }
+    </script>
+</body>
+</html>
