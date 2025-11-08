@@ -383,6 +383,7 @@
     </footer>
     </div>
 
+    <script src="./auth.js"></script>
     <script src="./script.js"></script>
     <script>
         // 页面加载完成后初始化
@@ -402,7 +403,333 @@
                     }
                 }, 100);
             }
+            
+            // 为登录表单添加事件监听器
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (!username || !password) {
+                        showMessage('请输入用户名和密码', 'error');
+                        return;
+                    }
+                    
+                    // 模拟登录验证（演示用）
+                    if (username === 'admin' && password === 'admin123') {
+                        showMessage('登录成功！', 'success');
+                        setTimeout(() => {
+                            document.getElementById('loginSection').style.display = 'none';
+                            document.getElementById('adminSection').style.display = 'block';
+                            document.getElementById('welcomeUser').textContent = username;
+                            
+                            // 保存登录状态
+                            sessionStorage.setItem('adminAuthenticated', 'true');
+                            sessionStorage.setItem('adminUsername', username);
+                        }, 1000);
+                    } else {
+                        showMessage('用户名或密码错误', 'error');
+                    }
+                });
+            }
+            
+            // 为2FA表单添加事件监听器
+            const twofaForm = document.getElementById('2faSection');
+            if (twofaForm) {
+                twofaForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    const authCode = document.getElementById('authCode').value.trim();
+                    
+                    if (!authCode || authCode.length !== 6) {
+                        showMessage('请输入6位验证码', 'error');
+                        return;
+                    }
+                    
+                    // 模拟2FA验证（演示用）
+                    if (authCode === '123456') {
+                        showMessage('2FA验证成功！登录成功！', 'success');
+                        setTimeout(() => {
+                            document.getElementById('loginSection').style.display = 'none';
+                            document.getElementById('adminSection').style.display = 'block';
+                            
+                            // 保存登录状态
+                            sessionStorage.setItem('adminAuthenticated', 'true');
+                            sessionStorage.setItem('adminUsername', 'admin');
+                        }, 1000);
+                    } else {
+                        showMessage('验证码错误，请重试', 'error');
+                    }
+                });
+            }
+            
+            // 检查认证状态
+            setTimeout(function() {
+                const isAuth = sessionStorage.getItem('adminAuthenticated') === 'true';
+                if (isAuth) {
+                    // 已登录，显示管理界面
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('adminSection').style.display = 'block';
+                    
+                    // 更新欢迎信息
+                    const username = sessionStorage.getItem('adminUsername');
+                    if (username) {
+                        document.getElementById('welcomeUser').textContent = username;
+                    }
+                } else {
+                    // 未登录，显示登录界面
+                    document.getElementById('loginSection').style.display = 'flex';
+                    document.getElementById('adminSection').style.display = 'none';
+                }
+            }, 100);
         });
+        
+        // 显示消息函数
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 返回登录表单
+        function backToLogin() {
+            document.getElementById('2faSection').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('authCode').value = '';
+            showMessage('', 'info');
+        }
+        
+        // 登出函数
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                // 清除登录状态
+                sessionStorage.removeItem('adminAuthenticated');
+                sessionStorage.removeItem('adminUsername');
+                
+                // 重定向到登录页面
+                window.location.href = 'admin.html';
+            }
+        }
+        
+        // 切换2FA状态（演示用）
+        function toggle2FA() {
+            const button = document.getElementById('2faToggleBtn');
+            if (button.textContent === '启用2FA') {
+                button.textContent = '禁用2FA';
+                button.style.background = '#e74c3c';
+                showMessage('2FA已启用', 'success');
+            } else {
+                button.textContent = '启用2FA';
+                button.style.background = '#f39c12';
+                showMessage('2FA已禁用', 'info');
+            }
+        }
+        
+        // 显示添加记录表单
+        function showAddForm() {
+            const form = document.getElementById('addRecordForm');
+            if (form) {
+                form.classList.remove('hidden');
+                
+                // 清空表单
+                document.getElementById('editPhone').value = '';
+                document.getElementById('editName').value = '';
+                document.getElementById('editHasRecord').value = 'false';
+                document.getElementById('editCrimes').value = '';
+                document.getElementById('editStatus').value = '';
+                
+                // 移除编辑模式标记
+                delete window.editingRecord;
+            }
+        }
+        
+        // 隐藏添加记录表单
+        function hideAddForm() {
+            const form = document.getElementById('addRecordForm');
+            if (form) {
+                form.classList.add('hidden');
+                
+                // 清空表单
+                document.getElementById('editPhone').value = '';
+                document.getElementById('editName').value = '';
+                document.getElementById('editHasRecord').value = 'false';
+                document.getElementById('editCrimes').value = '';
+                document.getElementById('editStatus').value = '';
+                
+                // 移除编辑模式标记
+                delete window.editingRecord;
+            }
+        }
+        
+        // 处理表单提交
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const phone = document.getElementById('editPhone').value.trim();
+            const name = document.getElementById('editName').value.trim();
+            const hasRecord = document.getElementById('editHasRecord').value;
+            const crimes = document.getElementById('editCrimes').value.trim();
+            const status = document.getElementById('editStatus').value.trim();
+            
+            // 验证手机号格式
+            if (!/^[0-9]{11}$/.test(phone)) {
+                showMessage('请输入正确的11位手机号码', 'error');
+                return;
+            }
+            
+            if (!name || !status) {
+                showMessage('请填写姓名和状态', 'error');
+                return;
+            }
+            
+            // 获取现有记录
+            let records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+            
+            if (window.editingRecord) {
+                // 编辑模式：更新现有记录
+                const index = records.findIndex(record => record.phone === window.editingRecord.phone);
+                if (index !== -1) {
+                    records[index] = {
+                        phone: phone,
+                        name: name,
+                        hasRecord: hasRecord === 'true',
+                        crimes: crimes,
+                        status: status,
+                        lastUpdate: new Date().toLocaleString('zh-CN')
+                    };
+                    showMessage('记录更新成功！', 'success');
+                }
+            } else {
+                // 添加模式：检查手机号是否已存在
+                const existingRecord = records.find(record => record.phone === phone);
+                if (existingRecord) {
+                    showMessage('该手机号已存在，请使用编辑功能修改', 'error');
+                    return;
+                }
+                
+                // 添加新记录
+                records.push({
+                    phone: phone,
+                    name: name,
+                    hasRecord: hasRecord === 'true',
+                    crimes: crimes,
+                    status: status,
+                    lastUpdate: new Date().toLocaleString('zh-CN')
+                });
+                showMessage('记录添加成功！', 'success');
+            }
+            
+            // 保存到localStorage
+            localStorage.setItem('criminalRecords', JSON.stringify(records));
+            
+            // 隐藏表单
+            hideAddForm();
+            
+            // 刷新记录列表
+            if (typeof renderRecordsTable === 'function') {
+                renderRecordsTable();
+            }
+        }
+        
+        // 渲染记录表格
+        function renderRecordsTable() {
+            const tbody = document.getElementById('recordsTableBody');
+            if (!tbody) return;
+            
+            // 获取记录数据
+            const records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+            
+            // 清空表格
+            tbody.innerHTML = '';
+            
+            // 填充表格
+            records.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.phone}</td>
+                    <td>${record.name}</td>
+                    <td>${record.hasRecord ? '有' : '无'}</td>
+                    <td>${record.status}</td>
+                    <td>${record.lastUpdate}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editRecord('${record.phone}')">编辑</button>
+                        <button class="action-btn delete-btn" onclick="deleteRecord('${record.phone}')">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 编辑记录
+        function editRecord(phone) {
+            const records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+            const record = records.find(r => r.phone === phone);
+            
+            if (record) {
+                // 填充表单
+                document.getElementById('editPhone').value = record.phone;
+                document.getElementById('editName').value = record.name;
+                document.getElementById('editHasRecord').value = record.hasRecord.toString();
+                document.getElementById('editCrimes').value = record.crimes || '';
+                document.getElementById('editStatus').value = record.status;
+                
+                // 显示表单
+                document.getElementById('addRecordForm').classList.remove('hidden');
+                
+                // 设置编辑模式标记
+                window.editingRecord = record;
+            }
+        }
+        
+        // 删除记录
+        function deleteRecord(phone) {
+            if (confirm('确定要删除这条记录吗？')) {
+                let records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+                records = records.filter(record => record.phone !== phone);
+                
+                // 保存到localStorage
+                localStorage.setItem('criminalRecords', JSON.stringify(records));
+                
+                showMessage('记录删除成功！', 'success');
+                
+                // 刷新记录列表
+                renderRecordsTable();
+            }
+        }
+        
+        // 加载记录数据
+        function loadRecords() {
+            // 如果localStorage中没有数据，使用默认数据
+            if (!localStorage.getItem('criminalRecords')) {
+                const defaultRecords = [
+                    {
+                        phone: '13800138000',
+                        name: '张三',
+                        hasRecord: true,
+                        crimes: '盗窃罪',
+                        status: '在逃',
+                        lastUpdate: '2024-01-15 10:30:00'
+                    },
+                    {
+                        phone: '13900139000',
+                        name: '李四',
+                        hasRecord: false,
+                        crimes: '',
+                        status: '清白',
+                        lastUpdate: '2024-01-16 14:20:00'
+                    }
+                ];
+                localStorage.setItem('criminalRecords', JSON.stringify(defaultRecords));
+            }
+        }
     </script>
 </body>
 </html>
