@@ -407,7 +407,7 @@
             // 为登录表单添加事件监听器
             const loginForm = document.getElementById('loginForm');
             if (loginForm) {
-                loginForm.addEventListener('submit', function(event) {
+                loginForm.addEventListener('submit', async function(event) {
                     event.preventDefault();
                     
                     const username = document.getElementById('username').value.trim();
@@ -418,20 +418,34 @@
                         return;
                     }
                     
-                    // 模拟登录验证（演示用）
-                    if (username === 'admin' && password === 'afjdfbdnbfnmsdbfnsdbfnmsdfnmsdfnmsdnfmsdnmfbmnfbsdmnfsdnm') {
-                        showMessage('登录成功！', 'success');
-                        setTimeout(() => {
-                            document.getElementById('loginSection').style.display = 'none';
-                            document.getElementById('adminSection').style.display = 'block';
-                            document.getElementById('welcomeUser').textContent = username;
-                            
-                            // 保存登录状态
-                            sessionStorage.setItem('adminAuthenticated', 'true');
-                            sessionStorage.setItem('adminUsername', username);
-                        }, 1000);
-                    } else {
-                        showMessage('用户名或密码错误', 'error');
+                    try {
+                        // 从users.json文件加载用户数据
+                        const response = await fetch('users.json');
+                        if (!response.ok) {
+                            throw new Error('无法加载用户数据');
+                        }
+                        const usersData = await response.json();
+                        
+                        // 验证用户名和密码
+                        const user = usersData.users.find(u => u.user === username && u.password === password);
+                        
+                        if (user) {
+                            showMessage('登录成功！', 'success');
+                            setTimeout(() => {
+                                document.getElementById('loginSection').style.display = 'none';
+                                document.getElementById('adminSection').style.display = 'block';
+                                document.getElementById('welcomeUser').textContent = username;
+                                
+                                // 保存登录状态
+                                sessionStorage.setItem('adminAuthenticated', 'true');
+                                sessionStorage.setItem('adminUsername', username);
+                            }, 1000);
+                        } else {
+                            showMessage('用户名或密码错误', 'error');
+                        }
+                    } catch (error) {
+                        console.error('登录验证失败:', error);
+                        showMessage('登录失败，请稍后重试', 'error');
                     }
                 });
             }
