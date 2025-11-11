@@ -384,22 +384,23 @@
     </div>
 
     <script src="./auth.js"></script>
+    <script src="./admin-data.js"></script>
     <script src="./script.js"></script>
     <script>
         // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 等待script.js加载完成后再执行初始化
-            if (typeof loadRecords === 'function' && typeof renderRecordsTable === 'function') {
-                loadRecords();
-                renderRecordsTable();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 等待admin-data.js加载完成后再执行初始化
+            if (typeof adminDataManager !== 'undefined' && typeof renderRecordsTable === 'function') {
+                await adminDataManager.initialize();
+                await renderRecordsTable();
             } else {
                 // 如果函数未定义，等待一段时间后重试
-                setTimeout(function() {
-                    if (typeof loadRecords === 'function' && typeof renderRecordsTable === 'function') {
-                        loadRecords();
-                        renderRecordsTable();
+                setTimeout(async function() {
+                    if (typeof adminDataManager !== 'undefined' && typeof renderRecordsTable === 'function') {
+                        await adminDataManager.initialize();
+                        await renderRecordsTable();
                     } else {
-                        console.error('script.js中的函数未正确加载');
+                        console.error('admin-data.js中的函数未正确加载');
                     }
                 }, 100);
             }
@@ -584,7 +585,7 @@
         }
         
         // 处理表单提交
-        function handleFormSubmit(event) {
+        async function handleFormSubmit(event) {
             event.preventDefault();
             
             const phone = document.getElementById('editPhone').value.trim();
@@ -604,62 +605,45 @@
                 return;
             }
             
-            // 获取现有记录
-            let records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
             
+            const recordData = {
+                phone: phone,
+                name: name,
+                hasCriminalRecord: hasRecord === 'true',
+                crimes: crimes ? crimes.split(',').map(crime => crime.trim()) : [],
+                status: status
+            };
+            
+            let result;
             if (window.editingRecord) {
                 // 编辑模式：更新现有记录
-                const index = records.findIndex(record => record.phone === window.editingRecord.phone);
-                if (index !== -1) {
-                    records[index] = {
-                        phone: phone,
-                        name: name,
-                        hasRecord: hasRecord === 'true',
-                        crimes: crimes,
-                        status: status,
-                        lastUpdate: new Date().toLocaleString('zh-CN')
-                    };
-                    showMessage('记录更新成功！', 'success');
-                }
+                result = adminDataManager.updateRecord(window.editingRecord.phone, recordData);
             } else {
-                // 添加模式：检查手机号是否已存在
-                const existingRecord = records.find(record => record.phone === phone);
-                if (existingRecord) {
-                    showMessage('该手机号已存在，请使用编辑功能修改', 'error');
-                    return;
-                }
-                
-                // 添加新记录
-                records.push({
-                    phone: phone,
-                    name: name,
-                    hasRecord: hasRecord === 'true',
-                    crimes: crimes,
-                    status: status,
-                    lastUpdate: new Date().toLocaleString('zh-CN')
-                });
-                showMessage('记录添加成功！', 'success');
+                // 添加模式：添加新记录
+                result = adminDataManager.addRecord(recordData);
             }
             
-            // 保存到localStorage
-            localStorage.setItem('criminalRecords', JSON.stringify(records));
-            
-            // 隐藏表单
-            hideAddForm();
-            
-            // 刷新记录列表
-            if (typeof renderRecordsTable === 'function') {
-                renderRecordsTable();
+            if (result.success) {
+                showMessage(result.message, 'success');
+                hideAddForm();
+                await renderRecordsTable();
+            } else {
+                showMessage(result.message, 'error');
             }
         }
         
         // 渲染记录表格
-        function renderRecordsTable() {
+        async function renderRecordsTable() {
             const tbody = document.getElementById('recordsTableBody');
             if (!tbody) return;
             
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
+            
             // 获取记录数据
-            const records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
+            const records = adminDataManager.getAllRecords();
             
             // 清空表格
             tbody.innerHTML = '';
@@ -670,7 +654,7 @@
                 row.innerHTML = `
                     <td>${record.phone}</td>
                     <td>${record.name}</td>
-                    <td>${record.hasRecord ? '有' : '无'}</td>
+                    <td>${record.hasCriminalRecord ? '有' : '无'}</td>
                     <td>${record.status}</td>
                     <td>${record.lastUpdate}</td>
                     <td>
@@ -683,16 +667,18 @@
         }
         
         // 编辑记录
-        function editRecord(phone) {
-            const records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
-            const record = records.find(r => r.phone === phone);
+        async function editRecord(phone) {
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
+            
+            const record = adminDataManager.findRecordByPhone(phone);
             
             if (record) {
                 // 填充表单
                 document.getElementById('editPhone').value = record.phone;
                 document.getElementById('editName').value = record.name;
-                document.getElementById('editHasRecord').value = record.hasRecord.toString();
-                document.getElementById('editCrimes').value = record.crimes || '';
+                document.getElementById('editHasRecord').value = record.hasCriminalRecord.toString();
+                document.getElementById('editCrimes').value = record.crimes ? record.crimes.join(', ') : '';
                 document.getElementById('editStatus').value = record.status;
                 
                 // 显示表单
@@ -704,45 +690,83 @@
         }
         
         // 删除记录
-        function deleteRecord(phone) {
+        async function deleteRecord(phone) {
             if (confirm('确定要删除这条记录吗？')) {
-                let records = JSON.parse(localStorage.getItem('criminalRecords') || '[]');
-                records = records.filter(record => record.phone !== phone);
+                // 确保数据管理器已初始化
+                await adminDataManager.initialize();
                 
-                // 保存到localStorage
-                localStorage.setItem('criminalRecords', JSON.stringify(records));
+                const result = adminDataManager.deleteRecord(phone);
                 
-                showMessage('记录删除成功！', 'success');
-                
-                // 刷新记录列表
-                renderRecordsTable();
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    // 刷新记录列表
+                    await renderRecordsTable();
+                } else {
+                    showMessage(result.message, 'error');
+                }
             }
         }
         
-        // 加载记录数据
-        function loadRecords() {
-            // 如果localStorage中没有数据，使用默认数据
-            if (!localStorage.getItem('criminalRecords')) {
-                const defaultRecords = [
-                    {
-                        phone: '13800138000',
-                        name: '张三',
-                        hasRecord: true,
-                        crimes: '盗窃罪',
-                        status: '在逃',
-                        lastUpdate: '2024-01-15 10:30:00'
-                    },
-                    {
-                        phone: '13900139000',
-                        name: '李四',
-                        hasRecord: false,
-                        crimes: '',
-                        status: '清白',
-                        lastUpdate: '2024-01-16 14:20:00'
-                    }
-                ];
-                localStorage.setItem('criminalRecords', JSON.stringify(defaultRecords));
+        // 导出记录数据
+        async function exportRecords() {
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
+            
+            const result = adminDataManager.exportRecords();
+            if (result.success) {
+                showMessage(result.message, 'success');
+            } else {
+                showMessage(result.message, 'error');
             }
+        }
+        
+        // 导入记录数据
+        function importRecords() {
+            document.getElementById('importFile').click();
+        }
+        
+        // 处理文件导入
+        async function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
+            
+            const result = await adminDataManager.importRecords(file);
+            if (result.success) {
+                showMessage(result.message, 'success');
+                // 刷新记录列表
+                await renderRecordsTable();
+            } else {
+                showMessage(result.message, 'error');
+            }
+            
+            // 清空文件输入
+            event.target.value = '';
+        }
+        
+        // 清空所有记录
+        async function clearAllRecords() {
+            if (confirm('确定要清空所有记录吗？此操作不可撤销！')) {
+                // 确保数据管理器已初始化
+                await adminDataManager.initialize();
+                
+                const result = adminDataManager.clearAllRecords();
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    // 刷新记录列表
+                    await renderRecordsTable();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            }
+        }
+        
+        // 加载记录数据（兼容性函数，现在使用admin-data.js）
+        async function loadRecords() {
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
         }
     </script>
 </body>

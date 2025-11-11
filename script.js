@@ -2,8 +2,8 @@
 let criminalRecords = [];
 
 // 初始化函数
-document.addEventListener('DOMContentLoaded', function() {
-    loadRecords();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadRecords();
     updateStats();
     
     // 添加回车键搜索功能
@@ -18,56 +18,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // 加载记录数据
-function loadRecords() {
-    // 尝试从本地存储加载数据
-    const savedRecords = localStorage.getItem('criminalRecords');
-    if (savedRecords) {
-        criminalRecords = JSON.parse(savedRecords);
-    } else {
-        // 如果没有本地数据，使用默认示例数据
-        criminalRecords = [
-            {
-                phone: "13800138000",
-                name: "张三",
-                hasCriminalRecord: true,
-                crimes: ["盗窃罪", "诈骗罪"],
-                lastUpdate: "2024-01-15",
-                status: "在逃"
-            },
-            {
-                phone: "13900139000",
-                name: "李四",
-                hasCriminalRecord: false,
-                crimes: [],
-                lastUpdate: "2024-02-20",
-                status: "清白"
-            },
-            {
-                phone: "13600136000",
-                name: "王五",
-                hasCriminalRecord: true,
-                crimes: ["故意伤害罪"],
-                lastUpdate: "2023-12-10",
-                status: "服刑中"
-            },
-            {
-                phone: "13700137000",
-                name: "赵六",
-                hasCriminalRecord: true,
-                crimes: ["贩毒罪", "非法持有枪支罪"],
-                lastUpdate: "2024-03-05",
-                status: "已判刑"
-            },
-            {
-                phone: "13500135000",
-                name: "钱七",
-                hasCriminalRecord: false,
-                crimes: [],
-                lastUpdate: "2024-01-30",
-                status: "清白"
-            }
-        ];
-        saveRecords();
+async function loadRecords() {
+    try {
+        // 从record.json文件加载数据
+        const response = await fetch('record.json');
+        if (!response.ok) {
+            throw new Error('无法加载犯罪记录数据文件');
+        }
+        criminalRecords = await response.json();
+        console.log('成功加载犯罪记录数据:', criminalRecords.length, '条记录');
+    } catch (error) {
+        console.error('加载犯罪记录数据失败:', error);
+        // 如果文件加载失败，显示错误信息
+        showError('无法加载犯罪记录数据，请检查网络连接或联系管理员');
+        criminalRecords = [];
     }
 }
 
