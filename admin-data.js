@@ -28,14 +28,15 @@ class AdminDataManager {
         }
     }
 
-    // 保存记录到文件（自动保存到record.json）
+    // 保存记录到后端服务器
     async saveRecordsToFile() {
         try {
             const dataStr = JSON.stringify(this.records, null, 2);
             
-            // 直接保存到record.json文件
-            const response = await fetch('./record.json', {
-                method: 'PUT',
+            // 注意：这里是向一个假设的后端API端点发送请求
+            // 你需要一个后端服务来接收这个请求并写入文件或数据库
+            const response = await fetch('/api/records', {
+                method: 'POST', // 通常使用POST或PUT来更新/替换整个数据集
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -43,12 +44,13 @@ class AdminDataManager {
             });
             
             if (response.ok) {
-                return { success: true, message: '记录已自动保存到record.json文件' };
+                return { success: true, message: '记录已成功保存到服务器' };
             } else {
-                return { success: false, message: '保存失败: ' + response.statusText };
+                const errorText = await response.text();
+                return { success: false, message: `保存失败: ${response.status} ${response.statusText} - ${errorText}` };
             }
         } catch (error) {
-            return { success: false, message: '保存文件失败: ' + error.message };
+            return { success: false, message: '保存请求失败: ' + error.message };
         }
     }
 
@@ -64,124 +66,151 @@ class AdminDataManager {
 
     // 添加新记录
     async addRecord(recordData) {
-        try {
-            // 检查手机号是否已存在
-            if (this.findRecordByPhone(recordData.phone)) {
-                return { success: false, message: '该手机号的记录已存在' };
-            }
+        if (this.findRecordByPhone(recordData.phone)) {
+            return { success: false, message: '该手机号的记录已存在' };
+        }
 
-            const newRecord = {
-                phone: recordData.phone,
-                name: recordData.name,
-                hasCriminalRecord: recordData.hasCriminalRecord,
-                crimes: recordData.crimes || [],
-                status: recordData.status,
-                lastUpdate: new Date().toISOString().split('T')[0]
-            };
+        const newRecord = {
+            ...recordData,
+            crimes: recordData.crimes || [],
+            lastUpdate: new Date().toISOString().split('T')[0]
+        };
 
-            this.records.push(newRecord);
-            
-            // 自动保存到文件
-            const saveResult = await this.saveRecordsToFile();
-            if (saveResult.success) {
-                return { success: true, message: '记录添加成功！数据已自动保存到record.json文件' };
-            } else {
-                return { success: false, message: '记录添加成功但保存失败: ' + saveResult.message };
-            }
-        } catch (error) {
-            return { success: false, message: '添加记录失败: ' + error.message };
+        this.records.push(newRecord);
+        
+        const saveResult = await this.saveRecordsToFile();
+        if (saveResult.success) {
+            return { success: true, message: '记录添加成功！数据已自动保存。' };
+        } else {
+            // 如果保存失败，可以选择回滚添加操作
+            this.records.pop(); 
+            return { success: false, message: `记录添加失败: ${saveResult.message}` };
         }
     }
 
     // 更新记录
     async updateRecord(phone, recordData) {
-        try {
-            const index = this.records.findIndex(record => record.phone === phone);
-            if (index === -1) {
-                return { success: false, message: '记录不存在' };
+        const index = this.records.findIndex(record => record.phone === phone);
+        if (index === -1) {
+            return { success: false, message: '记录不存在' };
+        }
+        
+        // 如果手机号被修改，需检查新手机号是否已存在（不包括当前记录自身）
+        if (recordData.phone && recordData.phone !== phone) {
+            const existing = this.findRecordByPhone(recordData.phone);
+            if (existing) {
+                return { success: false, message: '更新失败，新的手机号已被其他记录占用' };
             }
+        }
 
-            this.records[index] = {
-                phone: recordData.phone,
-                name: recordData.name,
-                hasCriminalRecord: recordData.hasCriminalRecord,
-                crimes: recordData.crimes || [],
-                status: recordData.status,
-                lastUpdate: new Date().toISOString().split('T')[0]
-            };
+        const originalRecord = this.records[index];
+        this.records[index] = {
+            ...originalRecord,
+            ...recordData,
+            lastUpdate: new Date().toISOString().split('T')[0]
+        };
 
-            // 自动保存到文件
-            const saveResult = await this.saveRecordsToFile();
-            if (saveResult.success) {
-                return { success: true, message: '记录更新成功！数据已自动保存到record.json文件' };
-            } else {
-                return { success: false, message: '记录更新成功但保存失败: ' + saveResult.message };
-            }
-        } catch (error) {
-            return { success: false, message: '更新记录失败: ' + error.message };
+        const saveResult = await this.saveRecordsToFile();
+        if (saveResult.success) {
+            return { success: true, message: '记录更新成功！数据已自动保存。' };
+        } else {
+            // 如果保存失败，回滚更新操作
+            this.records[index] = originalRecord;
+            return { success: false, message: `记录更新失败: ${saveResult.message}` };
         }
     }
 
     // 删除记录
     async deleteRecord(phone) {
-        try {
-            const initialLength = this.records.length;
-            this.records = this.records.filter(record => record.phone !== phone);
-            
-            if (this.records.length < initialLength) {
-                // 自动保存到文件
-                const saveResult = await this.saveRecordsToFile();
-                if (saveResult.success) {
-                    return { success: true, message: '记录删除成功！数据已自动保存到record.json文件' };
-                } else {
-                    return { success: false, message: '记录删除成功但保存失败: ' + saveResult.message };
-                }
-            } else {
-                return { success: false, message: '记录不存在' };
-            }
-        } catch (error) {
-            return { success: false, message: '删除记录失败: ' + error.message };
+        const recordIndex = this.records.findIndex(record => record.phone === phone);
+        if (recordIndex === -1) {
+            return { success: false, message: '记录不存在' };
+        }
+        
+        const deletedRecord = this.records[recordIndex];
+        this.records.splice(recordIndex, 1);
+
+        const saveResult = await this.saveRecordsToFile();
+        if (saveResult.success) {
+            return { success: true, message: '记录删除成功！数据已自动保存。' };
+        } else {
+            // 如果保存失败，回滚删除操作
+            this.records.splice(recordIndex, 0, deletedRecord);
+            return { success: false, message: `记录删除失败: ${saveResult.message}` };
         }
     }
 
     // 导出数据到JSON
     exportRecords() {
-        const dataStr = JSON.stringify(this.records, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = 'criminal_records_export.json';
-        link.click();
-        
-        return { success: true, message: '数据导出成功' };
+        try {
+            const dataStr = JSON.stringify(this.records, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'criminal_records_export.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            
+            return { success: true, message: '数据导出成功' };
+        } catch (error) {
+            return { success: false, message: '导出失败: ' + error.message };
+        }
     }
 
     // 导入数据
     importRecords(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const importedRecords = JSON.parse(e.target.result);
-                    if (Array.isArray(importedRecords)) {
-                        this.records = importedRecords;
-                        resolve({ success: true, message: '数据导入成功' });
+                    if (!Array.isArray(importedRecords)) {
+                        resolve({ success: false, message: '文件格式错误，需要一个JSON数组' });
+                        return;
+                    }
+                    
+                    const originalRecords = this.records;
+                    this.records = importedRecords;
+                    
+                    const saveResult = await this.saveRecordsToFile();
+                    if(saveResult.success) {
+                        resolve({ success: true, message: '数据导入并保存成功' });
                     } else {
-                        resolve({ success: false, message: '文件格式错误' });
+                        // 如果保存失败，回滚导入操作
+                        this.records = originalRecords;
+                        resolve({ success: false, message: `数据导入成功但保存失败: ${saveResult.message}` });
                     }
                 } catch (error) {
-                    resolve({ success: false, message: '文件读取失败: ' + error.message });
+                    resolve({ success: false, message: '文件解析失败: ' + error.message });
                 }
+            };
+            reader.onerror = () => {
+                resolve({ success: false, message: '文件读取失败' });
             };
             reader.readAsText(file);
         });
     }
 
     // 清空所有记录
-    clearAllRecords() {
+    async clearAllRecords() {
+        if (this.records.length === 0) {
+           return { success: true, message: '记录已经是空的' };
+        }
+        
+        const originalRecords = [...this.records];
         this.records = [];
-        return { success: true, message: '所有记录已清空' };
+
+        const saveResult = await this.saveRecordsToFile();
+        if(saveResult.success) {
+            return { success: true, message: '所有记录已清空并已保存' };
+        } else {
+             // 如果保存失败，回滚清空操作
+            this.records = originalRecords;
+            return { success: false, message: `清空操作失败: ${saveResult.message}` };
+        }
     }
 
     // 获取统计信息
