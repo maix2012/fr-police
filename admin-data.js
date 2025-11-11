@@ -75,7 +75,10 @@ class AdminDataManager {
         };
 
         this.records.push(newRecord);
-        return { success: true, message: '记录添加成功' };
+        return { 
+            success: true, 
+            message: '记录添加成功！请点击"保存到文件"按钮将更改保存到record.json文件' 
+        };
     }
 
     // 更新记录
@@ -94,7 +97,10 @@ class AdminDataManager {
             lastUpdate: new Date().toISOString().split('T')[0]
         };
 
-        return { success: true, message: '记录更新成功' };
+        return { 
+            success: true, 
+            message: '记录更新成功！请点击"保存到文件"按钮将更改保存到record.json文件' 
+        };
     }
 
     // 删除记录
@@ -103,7 +109,10 @@ class AdminDataManager {
         this.records = this.records.filter(record => record.phone !== phone);
         
         if (this.records.length < initialLength) {
-            return { success: true, message: '记录删除成功' };
+            return { 
+                success: true, 
+                message: '记录删除成功！请点击"保存到文件"按钮将更改保存到record.json文件' 
+            };
         } else {
             return { success: false, message: '记录不存在' };
         }
