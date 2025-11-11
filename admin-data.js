@@ -28,6 +28,26 @@ class AdminDataManager {
         }
     }
 
+    // 保存数据到record.json文件
+    async saveRecordsToFile() {
+        try {
+            // 由于浏览器限制，无法直接写入文件
+            // 这里我们提供一个下载功能，让用户手动保存更新后的文件
+            const dataStr = JSON.stringify(this.records, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'record.json';
+            link.click();
+            
+            return { success: true, message: '数据已准备好下载，请保存为record.json文件替换原文件' };
+        } catch (error) {
+            console.error('保存数据失败:', error);
+            return { success: false, message: '保存数据失败: ' + error.message };
+        }
+    }
+
     // 获取所有记录
     getAllRecords() {
         return this.records;
