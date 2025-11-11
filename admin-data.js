@@ -28,7 +28,7 @@ class AdminDataManager {
         }
     }
 
-    // 保存数据到record.json文件
+    // 保存记录到文件（自动保存到record.json）
     async saveRecordsToFile() {
         try {
             const dataStr = JSON.stringify(this.records, null, 2);
@@ -48,7 +48,6 @@ class AdminDataManager {
                 return { success: false, message: '保存失败: ' + response.statusText };
             }
         } catch (error) {
-            console.error('保存数据失败:', error);
             return { success: false, message: '保存文件失败: ' + error.message };
         }
     }
