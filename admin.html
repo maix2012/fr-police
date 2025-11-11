@@ -764,6 +764,19 @@
             }
         }
         
+        // 保存数据到文件
+        async function saveToFile() {
+            // 确保数据管理器已初始化
+            await adminDataManager.initialize();
+            
+            const result = await adminDataManager.saveRecordsToFile();
+            if (result.success) {
+                showMessage(result.message, 'success');
+            } else {
+                showMessage(result.message, 'error');
+            }
+        }
+        
         // 加载记录数据（兼容性函数，现在使用admin-data.js）
         async function loadRecords() {
             // 确保数据管理器已初始化
